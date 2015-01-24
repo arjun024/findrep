@@ -10,10 +10,12 @@ $ findrep [-h] <FIND-PATTERN> <REPLACE-WITH> [LOCATION]
 ###Examples
 ```
 #replace all instances of 'foo' with 'bar' in the current directory
+
 $ findrep foo bar
 ```
 ```
 #replace all instances of 'foo' with 'bar' in the directory 'my-dir'
+
 $ findrep foo bar my-dir/
 ```
 
