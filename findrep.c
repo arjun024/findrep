@@ -64,15 +64,13 @@ int main(int argc, char **argv)
 		}
 	}
 
-	if (system("command -v grep > /dev/null") &&
-	system("command -v sed > /dev/null")) {
-		fprintf(stderr, "grep and sed are required\n");
-		_exit(EXIT_FAILURE);
-	}
-
 	if (system("command -v grep > /dev/null")) {
 		fprintf(stderr, "grep is required\n");
-		_exit(EXIT_FAILURE);
+
+		if (system("command -v sed > /dev/null")) {
+			fprintf(stderr, "sed is required\n");
+			_exit(EXIT_FAILURE);
+		}
 	}
 
 	if (system("command -v sed > /dev/null")) {
