@@ -19,5 +19,11 @@ $ findrep foo bar
 $ findrep foo bar my-dir/
 ```
 
+###Building from source
+```
+$ gcc -o findrep findrep.c
+```
+* move findrep to any location in your `$PATH`. eg: `/usr/local/bin`
+
 ###Contributions
 All contributions are most welcome.
