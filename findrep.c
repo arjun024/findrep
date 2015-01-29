@@ -49,10 +49,32 @@ static void no_match(char *argv1)
 	_exit(EXIT_SUCCESS);
 }
 
+/* prepend backslash to every space */
+static char *escape_spaces(const char* arg)
+{
+	int i, j, len, len_temp;
+	char *op, *op_temp;
+	len = strlen(arg) + 1;
+	op = malloc(len);
+	len_temp = len;
+	op_temp = op;
+	for(i = 0, j = 0; i < len; ++i, ++j) {
+		if(arg[i] == ' ') {
+			op[j++] = '\\';
+			op[j] = ' ';
+			op_temp = realloc(op, ++len_temp);
+		} else {
+			op[j] = arg[i];
+		}
+	}
+	return op;
+}
+
 int main(int argc, char **argv)
 {
 	int rc, rc_each;
 	FILE *fp_grep;
+	char *e_argv1, *e_argv2;
 	char option;
 
 	while ((option = getopt(argc, argv, "h")) != -1) {
@@ -101,8 +123,13 @@ int main(int argc, char **argv)
 	do {
 		if (match[strlen(match) - 1] == '\n')
 			match[strlen(match) - 1] = ' ';
-		snprintf(command, sizeof command, "echo %s | xargs sed -i 's/%s/%s/g'",
-			match, argv[1], argv[2]);
+
+		e_argv1 = escape_spaces(argv[1]);
+		e_argv2 = escape_spaces(argv[2]);
+		snprintf(command, sizeof command, "echo %s | xargs sed -i 's %s %s g'",
+			match, e_argv1, e_argv2);
+		free(e_argv1);
+		free(e_argv2);
 		rc_each = system(command);
 		if (rc_each) {
 			/* sed also prints its  error into stderr */
