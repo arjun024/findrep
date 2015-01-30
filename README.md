@@ -25,5 +25,9 @@ $ gcc -o findrep findrep.c
 ```
 * move findrep to any location in your `$PATH`. eg: `/usr/local/bin`
 
+###TODO
+* Get `grep`'s source and integrate it, instead of calling external grep.
+* Enhance `escape_spl_chars()` to give correct input for sed (and grep).
+
 ###Contributions
 All contributions are most welcome.
