@@ -21,14 +21,13 @@ $ findrep foo bar my-dir/
 
 ###Building from source
 ```
-$ gcc -o findrep findrep.c sed.c
+$ gcc -o findrep findrep.c grep-rl.c sed.c
 ```
-* move findrep to any location in your `$PATH`. eg: `/usr/local/bin`
+* move `findrep` to any location in your `$PATH`. eg: `/usr/local/bin`
 
 ###TODO
-* Get `grep`'s source and integrate it, instead of calling external grep.
 * Enhance `escape_spl_chars()` to give correct input for sed (and grep).
-* get `main_sed()` to propagate always return correct return code.
+* get `main_sed()` to always propagate correct return code.
 
 ###Contributions
 All contributions are most welcome.
