@@ -121,13 +121,11 @@ int main(int argc, char **argv)
 
 		e_argv1 = escape_spl_chars(argv[1]);
 		e_argv2 = escape_spl_chars(argv[2]);
-		snprintf(command, sizeof command, "s/%s/%s/g",
+		snprintf(command, sizeof command, "s %s %s g",
 			e_argv1, e_argv2);
 		sed_argv[1] = command;
 		sed_argv[2] = match;
-		//printf("sed %s %s\n", sed_argv[1], sed_argv[2]);
 		rc_each = sed_main(sed_argc, sed_argv);
-		//printf("rc %d\n", rc_each);
 		free(e_argv1);
 		free(e_argv2);
 		if (rc_each) {
