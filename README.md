@@ -28,6 +28,7 @@ $ gcc -o findrep findrep.c sed.c
 ###TODO
 * Get `grep`'s source and integrate it, instead of calling external grep.
 * Enhance `escape_spl_chars()` to give correct input for sed (and grep).
+* get `main_sed()` to propagate always return correct return code.
 
 ###Contributions
 All contributions are most welcome.
