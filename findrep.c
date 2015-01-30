@@ -27,6 +27,8 @@ THE SOFTWARE.
 #include <unistd.h>
 #include <string.h>
 
+#include "sed.h"
+
 #define VERSION "0.0.1"
 #define MAX_COMMAND_LENGTH 2048
 #define MAX_FILE_PATH_LENGTH 1024
@@ -49,8 +51,8 @@ static void no_match(char *argv1)
 	_exit(EXIT_SUCCESS);
 }
 
-/* prepend backslash to every space */
-static char *escape_spaces(const char* arg)
+/* incomplete */
+static char *escape_spl_chars(const char* arg)
 {
 	int i, j, len, len_temp;
 	char *op, *op_temp;
@@ -74,6 +76,8 @@ int main(int argc, char **argv)
 {
 	int rc, rc_each;
 	FILE *fp_grep;
+	char *sed_argv[] = {"sed", " ", " ", NULL};
+	int sed_argc = sizeof sed_argv / sizeof (char*) - 1;
 	char *e_argv1, *e_argv2;
 	char option;
 
@@ -88,16 +92,6 @@ int main(int argc, char **argv)
 
 	if (system("command -v grep > /dev/null")) {
 		fprintf(stderr, "grep is required\n");
-
-		if (system("command -v sed > /dev/null")) {
-			fprintf(stderr, "sed is required\n");
-			_exit(EXIT_FAILURE);
-		}
-	}
-
-	if (system("command -v sed > /dev/null")) {
-		fprintf(stderr, "sed is required\n");
-		_exit(EXIT_FAILURE);
 	}
 
 	if (argc < 3) {
@@ -114,6 +108,7 @@ int main(int argc, char **argv)
 		argv[1], search_folder);
 
 	fp_grep = popen(command, "r");
+	/* after this `command` free for reuse */
 
 	if (!fgets(match, sizeof match, fp_grep)) {
 		fclose(fp_grep);
@@ -124,10 +119,13 @@ int main(int argc, char **argv)
 		if (match[strlen(match) - 1] == '\n')
 			match[strlen(match) - 1] = ' ';
 
-		e_argv1 = escape_spaces(argv[1]);
-		e_argv2 = escape_spaces(argv[2]);
-		snprintf(command, sizeof command, "echo %s | xargs sed -i 's %s %s g'",
-			match, e_argv1, e_argv2);
+		e_argv1 = escape_spl_chars(argv[1]);
+		e_argv2 = escape_spl_chars(argv[2]);
+		snprintf(command, sizeof command, "s %s %s g",
+			e_argv1, e_argv2);
+		sed_argv[1] = command;
+		sed_argv[2] = match;
+		sed_main(sed_argc, sed_argv);
 		free(e_argv1);
 		free(e_argv2);
 		rc_each = system(command);
