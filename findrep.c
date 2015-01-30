@@ -27,6 +27,7 @@ THE SOFTWARE.
 #include <unistd.h>
 #include <string.h>
 
+#include "grep-rl.h"
 #include "sed.h"
 
 #define VERSION "0.0.1"
@@ -75,7 +76,9 @@ static char *escape_spl_chars(const char* arg)
 int main(int argc, char **argv)
 {
 	int rc, rc_each;
-	FILE *fp_grep;
+	char *grep_argv[] = {"grep-rl", " ", " ", NULL};
+	int grep_argc = sizeof grep_argv / sizeof (char*) - 1;
+	string_item *temp_str_item;
 	char *sed_argv[] = {"sed", " ", " ", NULL};
 	int sed_argc = sizeof sed_argv / sizeof (char*) - 1;
 	char *e_argv1, *e_argv2;
@@ -90,10 +93,6 @@ int main(int argc, char **argv)
 		}
 	}
 
-	if (system("command -v grep > /dev/null")) {
-		fprintf(stderr, "grep is required\n");
-	}
-
 	if (argc < 3) {
 		usage(argv, EXIT_FAILURE);
 	}
@@ -102,20 +101,24 @@ int main(int argc, char **argv)
 		search_folder = argv[3];
 	}
 
-	rc = 1;
+	grep_argv[1] = argv[1];
+	grep_argv[2] = search_folder;
 
-	snprintf(command, sizeof command, "grep -rl '%s' %s",
-		argv[1], search_folder);
+	/* grep-rl_main() fills matched_list */
+	rc = grep_rl_main(grep_argc, grep_argv);
 
-	fp_grep = popen(command, "r");
-	/* after this `command` free for reuse */
+	if(rc)
+		return rc;
 
-	if (!fgets(match, sizeof match, fp_grep)) {
-		fclose(fp_grep);
+	temp_str_item = matched_list;
+
+	if (temp_str_item == NULL) {
 		no_match(argv[1]);
 	}
 
-	do {
+	rc = 1;
+	while(temp_str_item && temp_str_item->str) {
+		strcpy(match, temp_str_item->str);
 		if (match[strlen(match) - 1] == '\n')
 			match[strlen(match) - 1] = ' ';
 
@@ -136,10 +139,8 @@ int main(int argc, char **argv)
 			rc = 0;
 			printf("Replaced '%s' in: %s\n", argv[1], match);
 		}
-
-	} while(fgets(match, sizeof match, fp_grep));
-
-	fclose(fp_grep);
+		temp_str_item = temp_str_item ->next;
+	}
 
 	return rc;
 
