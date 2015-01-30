@@ -23,7 +23,6 @@ $(OBJS):        sed.h
  * If you want more commands per script: increase MAXCMDS.
  */
 
-
 #include <ctype.h>
 #include <sys/types.h>
 #include <stdlib.h>
@@ -246,6 +245,8 @@ static char *getline_sed (char *buf);
 static int Memcmp (char *a, char *b, int count);
 static void readout (void);
 
+static char *filename;
+
 int sed_main(argc, argv)
 /* Main sequence of the stream editor */
 int argc;
@@ -253,6 +254,7 @@ char *argv[];
 {
   eargc = argc;                 /* set local copy of argument count */
   eargv = argv;                 /* set local copy of argument list */
+  filename = argv[2];
   cmdp->addr1 = pool;           /* 1st addr expand will be at pool start */
   if (eargc == 1) quit(0);      /* exit immediately if no arguments */
   /* Scan through the arguments, interpreting each one */
@@ -299,7 +301,7 @@ char *argv[];
   lablst->address = cmdp;       /* set up header of label linked list */
   resolve();                    /* resolve label table indirections */
   execute();                    /* execute commands */
-  quit(0);                      /* everything was O.K. if we got here */
+  /*quit(0);  */                    /* everything was O.K. if we got here */
   return(0);
 }
 
@@ -967,8 +969,8 @@ void execute()
   initget();
 
   /* findrep */
-  if((fpo = fopen(*(eargv-1), "r+")) == NULL) {
-    fprintf(stderr, "findrep: (sed) can't open %s\n", *(eargv-1));
+  if((fpo = fopen(filename, "w+")) == NULL) {
+    fprintf(stderr, "findrep: (sed) can't open %s\n", filename);
     quit(1);
   }
 
@@ -1552,13 +1554,13 @@ static int c;                   /* Will be the next char to read, a kind of
 static void get()
 /* Read next character into c treating all argument files as run through cat */
 {
-  while ((c = getchar()) == EOF && --eargc >= 0) openfile(*eargv++);
+  while ((c = getchar()) == EOF && --eargc >= 0) openfile(filename);
 }
 
 static void initget()
 /* Initialise character input */
 {
-  if (--eargc >= 0) openfile(*eargv++); /* else input == stdin */
+  if (--eargc >= 0) openfile(filename); /* else input == stdin */
   get();
 }
 
@@ -1624,4 +1626,3 @@ static void readout()
 }
 
 /* Sedexec.c ends here */
-
