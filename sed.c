@@ -1,23 +1,30 @@
 /*
- * The following file is modified by Arjun Sreedharan (2015) for findrep
- * All credits to the original author Eric S. Raymond
+ * sed.c
+ * This file is a modification done by Arjun Sreedharan (2015) for findrep
+ * on the original file written by Eric S. Raymond.
+ *
+ * Copyright (C) 2015 Arjun Sreedharan <arjun024@gmail.com>
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
 */
 
-/* sed - stream editor          Author: Eric S. Raymond */
+/* sed - stream editor
+ * Copyright (C) Eric S. Raymond
+ */
 
-/* This used to be three different files with the following makefile:
- * (Note the chmem).
-
-CFLAGS= -F -T.
-
-OBJS=   sedcomp.s sedexec.s
-
-sed:    $(OBJS)
-        cc -T. -o sed $(OBJS)
-  @chmem =13312 sed
-
-$(OBJS):        sed.h
-
+/*
  * If you want longer lines: increase MAXBUF.
  * If you want scripts with more text: increase POOLSIZE.
  * If you want more commands per script: increase MAXCMDS.
