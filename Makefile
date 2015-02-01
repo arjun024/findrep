@@ -10,5 +10,6 @@ HDEPS = grep-rl.h sed.h
 
 all: $(TARGET)
 
-$(TARGET): $(TARGET).c $(HDEPS) 
+$(TARGET): $(TARGET).c $(DEPS) $(HDEPS)
 	$(CC) $(CFLAGS) -o $(TARGET) $(TARGET).c $(DEPS)
+
