@@ -26,7 +26,7 @@
 #include "grep-rl.h"
 #include "sed.h"
 
-#define VERSION "0.0.1"
+#define VERSION "0.0.2"
 #define MAX_COMMAND_LENGTH 2048
 #define MAX_FILE_PATH_LENGTH 1024
 
