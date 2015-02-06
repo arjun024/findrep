@@ -1,0 +1,7 @@
+0.0.2 (Feb 6 2015)
+* remove dependency on grep, sed.
+
+0.0.1 (Jan 25 2015)
+* dependency on grep.
+* dependency on sed.
+
