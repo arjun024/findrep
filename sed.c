@@ -223,75 +223,85 @@ static int bcount = 0;          /* # tagged patterns in current RE */
 static int eflag;               /* -e option flag */
 static int gflag;               /* -g option flag */
 
-int sed_main (int argc, char **argv);
-static void compile (void);
-static int cmdcomp (int cchar);
-static char *rhscomp (char *rhsp, int delim);
-static char *recomp (char *expbuf, int redelim);
-static int cmdline (char *cbuf);
-static char *address (char *expbuf);
-static char *gettext (char *txp);
-static label *search (label *ptr);
-static void resolve (void);
-static char *ycomp (char *ep, int delim);
-void quit (int n);
-void execute (void);
-static int selected (sedcmd *ipc);
-static int match (char *expbuf, int gf);
-static int advance (char *lp, char *ep);
-static int substitute (sedcmd *ipc);
-static void dosub (char *rhsbuf);
-static char *place (char *asp, char *al1, char *al2);
-static void listto (char *p1, FILE *fp);
-static void truncated (int h);
-static void command (sedcmd *ipc);
-static void openfile (char *file);
-static void get (void);
-static void initget (void);
-static char *getline_sed (char *buf);
-static int Memcmp (char *a, char *b, int count);
-static void readout (void);
+#ifndef _PROTOTYPE
+  #define _PROTOTYPE(function, params) function params
+#endif
 
-static char *filename;
+_PROTOTYPE(int sed_main, (int argc, char **argv));
+_PROTOTYPE(static void compile, (void));
+_PROTOTYPE(static int cmdcomp, (int cchar));
+_PROTOTYPE(static char *rhscomp, (char *rhsp, int delim));
+_PROTOTYPE(static char *recomp, (char *expbuf, int redelim));
+_PROTOTYPE(static int cmdline, (char *cbuf));
+_PROTOTYPE(static char *address, (char *expbuf));
+_PROTOTYPE(static char *gettext, (char *txp));
+_PROTOTYPE(static label *search, (label *ptr));
+_PROTOTYPE(static void resolve, (void));
+_PROTOTYPE(static char *ycomp, (char *ep, int delim));
+_PROTOTYPE(void quit, (int n));
+_PROTOTYPE(void execute, (void));
+_PROTOTYPE(static int selected, (sedcmd *ipc));
+_PROTOTYPE(static int match, (char *expbuf, int gf));
+_PROTOTYPE(static int advance, (char *lp, char *ep));
+_PROTOTYPE(static int substitute, (sedcmd *ipc));
+_PROTOTYPE(static void dosub, (char *rhsbuf));
+_PROTOTYPE(static char *place, (char *asp, char *al1, char *al2));
+_PROTOTYPE(static void listto, (char *p1, FILE *fp));
+_PROTOTYPE(static void truncated, (int h));
+_PROTOTYPE(static int command, (sedcmd *ipc));
+_PROTOTYPE(static void openfile, (char *file));
+_PROTOTYPE(static void get, (void));
+_PROTOTYPE(static void initget, (void));
+_PROTOTYPE(static char *getline_sed, (char *buf));
+_PROTOTYPE(static int Memcmp, (char *a, char *b, int count));
+_PROTOTYPE(static void readout, (void));
+_PROTOTYPE(static void reinit, (void));
+
+/* reinitialize variables in each call */
+static void reinit(void)
+{
+  #define CLEAR(whatever) memset(whatever, 0, sizeof whatever)
+  CLEAR(linebuf);
+  CLEAR(cmds);
+  CLEAR(linenum);
+  CLEAR(labels);
+  label *lab = labels + 1;
+  label *lablst = labels;
+  CLEAR(pool);
+  fp = pool;
+  poolend = pool + POOLSIZE;
+  cmdf = NULL;
+  cp = linebuf;
+  cmdp = cmds;
+  lastre = NULL;
+  bdepth = 0;
+  bcount = 0;
+}
 
 int sed_main(argc, argv)
 /* Main sequence of the stream editor */
 int argc;
 char *argv[];
 {
+  reinit();
   eargc = argc;                 /* set local copy of argument count */
   eargv = argv;                 /* set local copy of argument list */
-  filename = argv[2];
-  cmdp->addr1 = pool;           /* 1st addr expand will be at pool start */
-  if (eargc == 1) quit(0);      /* exit immediately if no arguments */
-  /* Scan through the arguments, interpreting each one */
-  while ((--eargc > 0) && (**++eargv == '-')) switch (eargv[0][1]) {
-            case 'e':
-                eflag++;
-                compile();      /* compile with e flag on */
-                eflag = 0;
-                continue;       /* get another argument */
-            case 'f':
-                if (eargc-- <= 0)       /* barf if no -f file */
-                        quit(2);
-                if ((cmdf = fopen(*++eargv, "r")) == NULL) {
-                        fprintf(stderr, COCFI, *eargv);
-                        quit(2);
-                }
-                compile();      /* file is O.K., compile it */
-                fclose(cmdf);
-                continue;       /* go back for another argument */
-            case 'g':
-                gflag++;        /* set global flag on all s cmds */
-                continue;
-            case 'n':
-                nflag++;        /* no print except on p flag or w */
-                continue;
-            default:
-                fprintf(stdout, UFLAG, eargv[0][1]);
-                continue;
-        }
+#ifdef DEBUG
+  int ii = 0;
+  fprintf(stderr, "argc=%d, %s\n", argc, "argv:");
+  while(argv[ii] != NULL) {
+    fprintf(stderr, "%d : %s,", ii, argv[ii++]);
+  }
+#endif
 
+  cmdp->addr1 = pool;           /* 1st addr expand will be at pool start */
+
+  if (eargc == 1)      /* exit immediately if no arguments */
+    return 0;
+  /* Scan through the arguments, interpreting each one */
+
+if (--eargc > 0)
+  ++eargv;
 
   if (cmdp == cmds) {           /* no commands have been compiled */
         eargv--;
@@ -308,7 +318,7 @@ char *argv[];
   lablst->address = cmdp;       /* set up header of label linked list */
   resolve();                    /* resolve label table indirections */
   execute();                    /* execute commands */
-  /*quit(0);  */                    /* everything was O.K. if we got here */
+  /*quit(0); */                      /* everything was O.K. if we got here */
   return(0);
 }
 
@@ -970,15 +980,18 @@ void execute()
   register char *p1;            /* dummy copy ptrs */
   register sedcmd *ipc;         /* ptr to current command */
   char *execp;                  /* ptr to source */
-  /* findrep */
-  FILE *fpo = stdout;
+  char *filename = *eargv;
+  FILE *fpo;
 
   initget();
 
-  /* findrep */
-  if((fpo = fopen(filename, "w+")) == NULL) {
-    fprintf(stderr, "findrep: (sed) can't open %s\n", filename);
-    quit(1);
+#ifdef DEBUG
+  fprintf(stderr, "file now being written to is %s\n", filename);
+#endif
+
+  if ((fpo = fopen(filename, "r+"))== NULL) {
+        fprintf(stderr, "findrep: (sed) can't open %s\n for writing", filename);
+        quit(1);
   }
 
   /* Here's the main command-execution loop */
@@ -995,7 +1008,8 @@ void execute()
                         ipc++;
                         continue;
                 }
-                command(ipc);   /* execute the command pointed at */
+                if(command(ipc) != 0)   /* execute the command pointed at */
+                  return;
 
                 if (delete)     /* if delete flag is set */
                         break;  /* don't exec rest of compiled cmds */
@@ -1350,7 +1364,7 @@ int h;
   fprintf(stderr, " truncated to %d characters\n", MAXBUF);
 }
 
-static void command(ipc)
+static int command(ipc)
 /* Execute compiled command pointed at by ipc */
 sedcmd *ipc;
 {
@@ -1484,7 +1498,7 @@ cpcom:                          /* so s command can jump here */
         if (!nflag) puts(linebuf);      /* flush out the current line */
         if (aptr > appends)
                 readout();      /* do any pending a and r commands */
-        quit(0);
+        return 1;
 
       case RCMD:                /* read a file into the stream */
         *aptr++ = ipc;
@@ -1543,6 +1557,7 @@ cpcom:                          /* so s command can jump here */
         while (*p1 = p2[*p1]) p1++;
         break;
   }
+  return 0;
 }
 
 static void openfile(file)
@@ -1561,13 +1576,23 @@ static int c;                   /* Will be the next char to read, a kind of
 static void get()
 /* Read next character into c treating all argument files as run through cat */
 {
-  while ((c = getchar()) == EOF && --eargc >= 0) openfile(filename);
+  while ((c = getchar()) == EOF && --eargc >= 0) {
+#ifdef DEBUG
+    fprintf(stderr, "in get() - opening %s\n", *eargv);
+#endif
+    openfile(*eargv++);
+  }
 }
 
 static void initget()
 /* Initialise character input */
 {
-  if (--eargc >= 0) openfile(filename); /* else input == stdin */
+  if (--eargc >= 0) {
+#ifdef DEBUG
+    fprintf(stderr, "in initget() - opening %s\n", *eargv);
+#endif
+    openfile(*eargv++); /* else input == stdin */
+  }
   get();
 }
 
