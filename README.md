@@ -27,8 +27,6 @@ $ make
 
 ###TODO
 * Enhance `escape_spl_chars()` to give correct input for sed (and grep).
-* get `main_sed()` to always propagate correct return code.
-* have a much more better `sed.c` 
 
 ###Contributions
 All contributions are most welcome.
